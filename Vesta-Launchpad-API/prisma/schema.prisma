@@ -1,0 +1,834 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["metrics"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL_TRANSACTION")
+  directUrl = env("DATABASE_URL")
+}
+
+model Users {
+  id                      Int                   @id @default(autoincrement())
+  uid                     String?               @unique @default(uuid())
+  fname                   String?
+  lname                   String?
+  email                   String?
+  description             String?
+  birthDate               DateTime?
+  address                 String?
+  city                    String?
+  postalCode              String?
+  country                 String?
+  provider                String?
+  service                 String?
+  employmentStatus        String?
+  sourceOfFunds           String?
+  profileImage            String?
+  isPublish               Boolean               @default(true)
+  password                String?
+  role                    String?               @default("USER")
+  status                  String?               @default("APPROVED")
+  reason                  String?
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+  stripeId                String?
+  questionnaryResponse    Json?
+  registrationStatus      String?               @default("PENDING")
+  twoFactorAuthentication Boolean               @default(false)
+  referralCode            String?
+  kyc_applicant_id        String?
+  kyb_applicant_id        String?
+  kyc_verificaion_status  String?
+  applications            Application[]
+  auctions                Auction[]
+  bids                    Bid[]
+  collections             Collection[]
+  jobs                    Job[]
+  linkedWallets           LinkWallet[]
+  listings                Listing[]
+  metaDatas               MetaData[]
+  nfts                    NFT[]
+  ownedNFTs               NFT[]                 @relation("OwnerOfNFT")
+  posts                   Post[]
+  purchases               Purchase[]
+  referredToUser          Referrer?             @relation("referredToUser")
+  referrerToUser          Referrer[]            @relation("referrerToUser")
+  requestCorrection       RequestCorrection[]
+  SocialMediaLinks        SocialMediaLinks[]
+  subscriptions           Subscription[]
+  subscriptionPackages    SubscriptionPackage[]
+  subscriptionQueue       SubscriptionQueue?
+  userActivity            UserActivity[]
+  settings                UserSettings?
+  verification            Verification?
+  vestaDocument           VestaDocument[]
+  propertyDataLog         propertyDataLog[]
+  ErrorLogs               ErrorLogs[]
+  NFTLikes                NFTLikes[]
+}
+
+model Referrer {
+  id             Int    @id @default(autoincrement())
+  referrer       Int?
+  referred       Int?   @unique
+  referredToUser Users? @relation("referredToUser", fields: [referred], references: [id])
+  referrerToUser Users? @relation("referrerToUser", fields: [referrer], references: [id])
+}
+
+model Verification {
+  id                             Int       @id @default(autoincrement())
+  userId                         Int       @unique
+  isEmailVerified                Boolean   @default(false)
+  isTwoStepVerification          Boolean   @default(false)
+  phoneNumber                    Int?
+  emailVerificationCode          String?
+  emailVerificationCodeTimestamp DateTime?
+  gAuthSecretKey                 String?
+  gAuthSecretKeyTimestamp        DateTime?
+  user                           Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserSettings {
+  id                 Int      @id @default(autoincrement())
+  privacyStatement   Boolean? @default(false)
+  termsAndConditions Boolean? @default(false)
+  accountVisibility  Boolean? @default(false)
+  updates            Boolean  @default(false)
+  maintenance        Boolean  @default(false)
+  marketing          Boolean  @default(false)
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  userId             Int      @unique
+  user               Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model UserActivity {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  activity  String
+  details   String?
+  createdAt DateTime @default(now())
+  user      Users    @relation(fields: [userId], references: [id])
+}
+
+model LinkWallet {
+  id        Int      @id @default(autoincrement())
+  address   String   @unique
+  provider  String?
+  isDefault Boolean  @default(false)
+  signature String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  userId    Int
+  user      Users    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model KYCVerification {
+  id Int @id @default(autoincrement())
+}
+
+model RequestCorrection {
+  id        Int       @id @default(autoincrement())
+  userId    Int
+  reason    String
+  status    String?   @default("PENDING")
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  priority  Priority?
+  topic     String?
+  userEmail String?
+  user      Users     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Application {
+  id                              Int                              @id @default(autoincrement())
+  fullName                        String
+  email                           String
+  phoneNumber                     String
+  logoImage                       String?
+  projectName                     String
+  type                            String
+  subType                         String?
+  swotImageURL                    String?
+  companyBannerURL                String?
+  taxDescription                  String?
+  goalDescription                 String
+  projectDescription              String
+  companyAboutUs                  String?
+  status                          String
+  reason                          String?
+  createdAt                       DateTime                         @default(now())
+  updatedAt                       DateTime                         @updatedAt
+  hasBacker                       Boolean?
+  roadMap                         Json?
+  roadMapImageURL                 String?
+  usersId                         Int?
+  applicationUUID                 String?                          @unique @default(uuid())
+  dateToGetinTouch                DateTime
+  externalImages                  String[]                         @default([])
+  internalImages                  String[]                         @default([])
+  additionalInfo                  String?
+  description                     String?
+  source                          String?
+  kyb_applicant_id                String?
+  kyb_verificaion_status          String?
+  users                           Users?                           @relation(fields: [usersId], references: [id])
+  backers                         Backers[]
+  collections                     Collection[]
+  displayHomeCreatorApplication   DisplayHomeCreatorApplication?
+  displayHomeLaunchPadApplication DisplayHomeLaunchPadApplication?
+  documents                       Document[]
+  images                          Media[]
+  socialLinks                     SocialMediaLinks?
+  TaxAuthorities                  TaxAuthorities[]
+  teamMembers                     TeamMember[]
+}
+
+model Backers {
+  id              Int          @id @default(autoincrement())
+  fullName        String
+  email           String?
+  website         String?
+  telegram        String?
+  ticketSize      Float
+  amount          Float
+  goalDescription String
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  applicationId   Int?
+  profileImage    String?
+  application     Application? @relation(fields: [applicationId], references: [id])
+}
+
+model VestaDocument {
+  id        Int      @id @default(autoincrement())
+  title     String?
+  url       String?
+  size      Float?
+  userId    Int?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  user      Users?   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Document {
+  id                     Int         @id @default(autoincrement())
+  titleDeed              String?
+  projectDescription     String?
+  businessPlan           String?
+  technicalSpecification String?
+  designPlan             String?
+  url                    String?
+  applicationId          Int
+  application            Application @relation(fields: [applicationId], references: [id])
+}
+
+model SocialMediaLinks {
+  id            Int          @id @default(autoincrement())
+  website       String?
+  twitter       String?
+  linkedIn      String?
+  facebook      String?
+  instagram     String?
+  youtube       String?
+  discord       String?
+  telegram      String?
+  applicationId Int?         @unique
+  usersId       Int?
+  application   Application? @relation(fields: [applicationId], references: [id])
+  Users         Users?       @relation(fields: [usersId], references: [id])
+}
+
+model Media {
+  id            Int          @id @default(autoincrement())
+  url           String
+  createdAt     DateTime     @default(now())
+  updatedAt     DateTime     @updatedAt
+  applicationId Int?
+  Application   Application? @relation(fields: [applicationId], references: [id])
+}
+
+model TeamMember {
+  id            Int         @id @default(autoincrement())
+  profileImage  String?
+  fullName      String?
+  position      String?
+  contribution  String?
+  email         String?
+  linkedinLink  String?
+  instagramLink String?
+  facebookLink  String?
+  twitterLink   String?
+  telegram      String?
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id])
+}
+
+model SubscriptionPackage {
+  id                 Int                 @id @default(autoincrement())
+  name               String
+  price              Float               @db.Real
+  duration           Int
+  description        String
+  creditAmount       Int
+  craetedAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+  creatorId          Int
+  stripePriceId      String?
+  subscriptions      Subscription[]
+  creator            Users               @relation(fields: [creatorId], references: [id])
+  subscriptionQueues SubscriptionQueue[]
+}
+
+model Subscription {
+  id                       Int                 @id @default(autoincrement())
+  userId                   Int
+  subscriptionPackageId    Int
+  startDate                DateTime            @default(now())
+  endDate                  DateTime
+  isActive                 Boolean
+  activationDate           DateTime
+  createdAt                DateTime            @default(now())
+  updatedAt                DateTime            @updatedAt
+  stripeSubscriptionItemId String
+  creditBalance            Int?                @db.SmallInt
+  stripeSubscriptionId     String?
+  subscriptionPackage      SubscriptionPackage @relation(fields: [subscriptionPackageId], references: [id])
+  user                     Users               @relation(fields: [userId], references: [id])
+}
+
+model SubscriptionQueue {
+  id                      Int                 @id @default(autoincrement())
+  userId                  Int                 @unique
+  requestedPackageId      Int
+  requestedActivationDate DateTime
+  craetedAt               DateTime            @default(now())
+  updatedAt               DateTime            @updatedAt
+  requestedPackage        SubscriptionPackage @relation(fields: [requestedPackageId], references: [id])
+  user                    Users               @relation(fields: [userId], references: [id])
+}
+
+model Collection {
+  id                            Int                            @id @default(autoincrement())
+  collectionUUID                String?                        @unique @default(uuid())
+  name                          String                         @unique @map("colname_idx")
+  symbol                        String?
+  slug                          String?
+  creatorEarning                Float?
+  vestaEarning                  Float?
+  description                   String
+  logoImage                     String
+  featuredImage                 String
+  category                      String
+  contractAddress               String?                        @unique
+  bannerImage                   String
+  price                         Float?                         @default(0)
+  floorPrice                    Float?                         @default(0)
+  totalVolume                   Float?                         @default(0)
+  uniqueOwnersCount             Int?                           @default(0)
+  baseURL                       String?
+  externalUrl                   String?
+  isDeploy                      Boolean                        @default(false)
+  openDate                      DateTime?                      @db.Timestamptz(6)
+  closeDate                     DateTime?                      @db.Timestamptz(6)
+  saleType                      String?
+  chain                         String?
+  totalNft                      Int?                           @default(0)
+  minPerWalletLimit             Int?                           @default(0)
+  maPerxWalletLimit             Int?                           @default(0)
+  isDeployEventHappend          Boolean                        @default(false)
+  isApproved                    Boolean                        @default(false)
+  isBanned                      Boolean                        @default(false)
+  isPublish                     Boolean                        @default(true)
+  isPromoted                    Boolean                        @default(false)
+  reason                        String?
+  createdAt                     DateTime                       @default(now())
+  updatedAt                     DateTime                       @updatedAt
+  ownerId                       Int
+  applicationId                 Int?
+  isPending                     Boolean                        @default(true)
+  maxSupply                     Int?                           @default(0)
+  soldCount                     Int?                           @default(0)
+  application                   Application?                   @relation(fields: [applicationId], references: [id])
+  owner                         Users                          @relation(fields: [ownerId], references: [id])
+  CollectionSales               CollectionSales[]
+  displayHomeFeaturedCollection DisplayHomeFeaturedCollection?
+  displayHomeTopCollection      DisplayHomeTopCollection?
+  displayHomeUpcomingMints      DisplayHomeUpcomingMint?
+  Listing                       Listing[]
+  metaDatas                     MetaData[]
+  collectionStatus              CollectionStatus?
+}
+
+enum CollectionStatus {
+  UNDER_REVIEW
+  REQUEST_MODIFICATION
+  REJECTED
+  PUBLISHED
+  APPROVED
+  HIDDEN
+}
+
+model CollectionSales {
+  id                    Int                @id @default(autoincrement())
+  saleType              CollectionSaleType
+  maxSupply             Float?
+  maxMintPerTransaction Float
+  startDate             DateTime
+  endDate               DateTime
+  price                 Float
+  chain                 Chains?
+  numberOfNFTs          Int
+  minNFTSales           Int
+  maxNFTSales           Int
+  whitelist             String?
+  collectionId          Int
+  createdAt             DateTime           @default(now())
+  updatedAt             DateTime           @default(now())
+  Collection            Collection         @relation(fields: [collectionId], references: [id])
+}
+
+model Post {
+  id             Int      @id @default(autoincrement())
+  title          String
+  featuredimage  String?
+  seoTitle       String?
+  seoDescription String?
+  body           String
+  category       String
+  tags           String[]
+  isPublish      Boolean  @default(false)
+  postType       String
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+  authorId       Int
+  author         Users    @relation(fields: [authorId], references: [id], onDelete: Cascade)
+}
+
+model NFT {
+  id            Int      @id @default(autoincrement())
+  tokenId       Int      @unique
+  name          String?  @unique @map("name_idx")
+  tokenimageURL String?
+  address       String?
+  description   String?
+  attributes    Json?
+  ownerOfId     Int
+  isPublish     Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  creatorId     Int
+  creator       Users    @relation(fields: [creatorId], references: [id])
+  ownerOf       Users    @relation("OwnerOfNFT", fields: [ownerOfId], references: [id])
+}
+
+model NFTLikes {
+  id              Int      @id @default(autoincrement())
+  contractAddress String
+  tokenId         Int
+  walletAddress   String?
+  userId          Int?
+  user            Users?   @relation(fields: [userId], references: [id])
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model MetaData {
+  id           Int        @id @default(autoincrement())
+  tokenId      Int
+  slug         String?
+  name         String?
+  description  String?
+  image        String?
+  imageHash    String?
+  edition      Int?
+  date         DateTime
+  attributes   Json?
+  isPublish    Boolean    @default(true)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  collectionId Int
+  creatorId    Int
+  collection   Collection @relation(fields: [collectionId], references: [id])
+  creator      Users      @relation(fields: [creatorId], references: [id])
+}
+
+model Listing {
+  id                     Int         @id @default(autoincrement())
+  price                  Float       @default(0)
+  currency               String
+  startDate              DateTime?   @db.Timestamptz(6)
+  endDate                DateTime?   @db.Timestamptz(6)
+  tokenId                Int
+  contractAddress        String
+  ownerOf                String?
+  signature              String
+  nounce                 String?
+  isListed               Boolean     @default(false)
+  isSold                 Boolean     @default(false)
+  isPurchaseEventHappend Boolean     @default(false)
+  createdAt              DateTime    @default(now())
+  updatedAt              DateTime    @updatedAt
+  sellerId               Int
+  collectionId           Int?
+  bids                   Bid[]
+  Collection             Collection? @relation(fields: [collectionId], references: [id])
+  seller                 Users       @relation(fields: [sellerId], references: [id])
+  purchases              Purchase?
+}
+
+model Auction {
+  id                  Int           @id @default(autoincrement())
+  startDate           DateTime
+  endDate             DateTime
+  reservePrice        Float         @default(0)
+  status              AuctionStatus @default(FUTURE_AUCTION)
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+  tokenId             Int
+  contractAddress     String        @unique
+  sellerId            Int
+  highestBidderUserId Int?
+  usersId             Int?
+  Users               Users?        @relation(fields: [usersId], references: [id])
+  bids                Bid[]
+
+  @@unique([contractAddress, tokenId])
+}
+
+model Bid {
+  id                        Int       @id @default(autoincrement())
+  listingId                 Int?
+  bidderId                  Int?
+  amount                    Float     @default(0)
+  bidderAddress             String?
+  contractAddress           String
+  tokenId                   Int
+  bidDate                   DateTime? @default(now())
+  isBidAccepted             Boolean   @default(false)
+  isBid                     Boolean   @default(false)
+  isBidPlaceEventHappend    Boolean   @default(false)
+  isBidWithdrawEventHappend Boolean   @default(false)
+  isBidAcceptEventHappend   Boolean   @default(false)
+  bidStatus                 String?
+  createdAt                 DateTime  @default(now())
+  updatedAt                 DateTime  @updatedAt
+  auctionId                 Int?
+  auction                   Auction?  @relation(fields: [auctionId], references: [id])
+  bidder                    Users?    @relation(fields: [bidderId], references: [id])
+  listing                   Listing?  @relation(fields: [listingId], references: [id])
+}
+
+model Purchase {
+  id             Int       @id @default(autoincrement())
+  listingId      Int       @unique
+  buyerId        Int
+  price          Float     @default(0)
+  purchaseDate   DateTime? @default(now())
+  purchaseStatus String?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+  buyer          Users     @relation(fields: [buyerId], references: [id])
+  listing        Listing   @relation(fields: [listingId], references: [id])
+}
+
+model Job {
+  id            Int      @id @default(autoincrement())
+  title         String?
+  featuredImage String?
+  category      String?
+  description   String?
+  jobDes        String?
+  skills        String[]
+  requirements  String[]
+  location      String?
+  salary        String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  creatorId     Int
+  creator       Users    @relation(fields: [creatorId], references: [id])
+}
+
+model Transaction {
+  id                Int      @id @default(autoincrement())
+  txHash            String?  @unique
+  contractAddress   String?
+  method            String?
+  tokenId           Int?
+  price             Float?   @default(0)
+  blockNumber       Int?
+  blockHash         String?
+  to                String?
+  from              String?
+  gasPrice          Float?   @default(0)
+  gasUsed           Float?   @default(0)
+  cumulativeGasUsed Float?   @default(0)
+  txnFee            Float?   @default(0)
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
+}
+
+model DisplayHomeTopCollection {
+  id              Int        @id @default(autoincrement())
+  collectionId    Int        @unique
+  orderNumber     Int        @default(autoincrement())
+  isTopCollection Boolean    @default(false)
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @updatedAt
+  collection      Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+}
+
+model DisplayHomeFeaturedCollection {
+  id           Int        @id @default(autoincrement())
+  collectionId Int        @unique
+  orderNumber  Int        @default(autoincrement())
+  isFeatured   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+}
+
+model DisplayHomeCreatorApplication {
+  id            Int         @id @default(autoincrement())
+  applicationId Int         @unique
+  orderNumber   Int         @default(autoincrement())
+  isCreator     Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model DisplayHomeLaunchPadApplication {
+  id            Int         @id @default(autoincrement())
+  applicationId Int         @unique
+  orderNumber   Int         @default(autoincrement())
+  isLaunchPad   Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model DisplayHomeUpcomingMint {
+  id           Int        @id @default(autoincrement())
+  collectionId Int        @unique
+  orderNumber  Int        @default(autoincrement())
+  isUpComing   Boolean    @default(false)
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  collection   Collection @relation(fields: [collectionId], references: [id], onDelete: Cascade)
+}
+
+model FAQ {
+  id        Int      @id @default(autoincrement())
+  question  String?
+  answer    String?
+  order     Int      @default(autoincrement())
+  isPublish Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model propertyDataLog {
+  id            BigInt   @id @default(autoincrement())
+  created_at    DateTime @default(now()) @db.Timestamptz(6)
+  data          Json?    @db.Json
+  userId        Int?
+  requestParams Json?    @db.Json
+  requestPath   String?
+  Users         Users?   @relation(fields: [userId], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "public_propertyDataLog_userId_fkey")
+}
+
+model Questionary {
+  id             Int      @id @default(autoincrement())
+  questionHeader String
+  question       String
+  answers        Json
+  test           String?
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
+
+model TaxAuthorities {
+  id            Int         @id @default(autoincrement())
+  question      String
+  answer        String
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+  applicationId Int
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+}
+
+model SystemDocs {
+  id        Int            @id @default(autoincrement())
+  url       String
+  type      SystemDocTypes
+  createdAt DateTime       @default(now())
+  updateAt  DateTime       @default(now())
+}
+
+model SystemData {
+  id           Int            @id @default(autoincrement())
+  vestaEarning Float?
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @default(now())
+  type         SystemDataType
+}
+
+model ErrorLogs {
+  id           String     @id @default(uuid())
+  url          String?
+  host         String?
+  origin       String?
+  userAgent    String?
+  method       String
+  body         String?
+  userId       Int?
+  type         ErrorType?
+  statusCode   Int?
+  errorMessage String?
+  timestamp    DateTime?
+  User         Users?     @relation(fields: [userId], references: [id])
+}
+
+enum ErrorType {
+  TRANSACTION
+  CONNECT_WALLET
+}
+
+enum SystemDataType {
+  VESTA_FEE
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  CRITICAL
+}
+
+enum SystemDocTypes {
+  TERMS_CONDTIONS
+  PRIVACY_POLICY
+  LIGHT_PAPER
+  WHITE_PAPER
+  PITCH_DECK
+  ONE_PAGER
+}
+
+enum Status {
+  PENDING
+  APPROVED
+  REJECTED
+}
+
+enum Chains {
+  ETHERIUM
+  DOGE
+  SOLANA
+}
+
+enum CollectionSaleType {
+  PUBLIC
+  PRE
+  PRIVATE
+}
+
+enum AuctionStatus {
+  FUTURE_AUCTION
+  ACTIVE
+  ENDED
+}
+
+// new marketplace 
+
+model ListingV2 {
+  id           String    @id @default(cuid())
+  nftContract  String
+  orderHash    String?   @unique
+  tokenId      Int
+  nonce        String?
+  maker        String // seller address
+  taker        String? // buyer address (if specified)
+  expiry       String? //timestamp
+  quantity     Int // Number of tokens
+  price        String // Price in wei
+  paymentToken String // Payment token address (0x0 for native token)
+  strategyId   String // Strategy identifier
+  params       String? // Strategy-specific parameters
+  signature    String?
+  status       String    @default("active") // 'active', 'sold', 'cancelled'
+  createdAt    DateTime  @default(now())
+  updatedAt    DateTime  @updatedAt
+  metadata     Json? // NFT metadata
+  orders       OrderV2[]
+}
+
+model OrderV2 {
+  id              String    @id @default(cuid())
+  orderHash       String    @unique
+  listing         ListingV2 @relation(fields: [listingId], references: [id])
+  listingId       String
+  maker           String // Order seller address
+  taker           String? // Order buyer address (if specified)
+  expiry          DateTime
+  nonce           Int
+  signature       String
+  status          String    @default("pending") // 'pending', 'executed', 'cancelled'
+  transactionHash String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+}
+
+model AuctionV2 {
+  id              String   @id @default(cuid())
+  auctionId       String   @unique
+  seller          String // Auction seller address
+  highestBidder   String? // highest biddewr address
+  highestBid      String? // highest bid amount
+  startTime       DateTime
+  endTime         DateTime
+  minBidIncrement String
+  reservePrice    String
+  settled         Boolean  @default(false) // Whether the auction has been settled
+  paymentToken    String // Payment token address
+  nftContract     String
+  tokenId         Int
+  quantity        Int
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model OfferV2 {
+  id              String   @id @default(cuid())
+  offerId         String   @unique
+  offerer         String // Offer creator address
+  nftContract     String
+  tokenId         Int
+  quantity        Int
+  price           String
+  paymentToken    String // Payment token address
+  expiry          DateTime
+  nonce           Int
+  isCounterOffer  Boolean  @default(false) // Whether this is a counter-offer
+  originalOfferId String? // Original offer ID (for counter-offers)
+  cancelled       Boolean  @default(false) // Whether the offer has been cancelled
+  executed        Boolean  @default(false) // Whether the offer has been executed
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
+
+model NonceTracking {
+  id           Int      @id @default(autoincrement())
+  makerAddress String   @db.VarChar(42)
+  nonce        BigInt
+  status       String   @db.VarChar(20)
+  createdAt    DateTime @default(now())
+  listingId    String?  @db.VarChar(66)
+
+  @@unique([makerAddress, nonce])
+  @@index([makerAddress, status])
+}

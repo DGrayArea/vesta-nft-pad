@@ -1,0 +1,13 @@
+image: node:14
+
+pipelines:
+  branches:
+    staging:
+      - step:
+          name: Build and Deploy to CapRover
+          script:
+            # Install CapRover CLI
+            - npm install -g caprover
+            # Deploy to CapRover
+            - caprover login -u admin -p $CAPROVER_PASSWORD -h $CAPROVER_URL
+            - caprover deploy -a $CAPROVER_APP_NAME -b staging
