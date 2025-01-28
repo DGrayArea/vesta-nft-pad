@@ -1,0 +1,230 @@
+swagger: "2.0"
+info:
+  title: Example BACKEND
+  description: |
+    This is Example API Documentation. This API runs on http://localhost:3000.
+    Here you can find information about the available endpoints and their usage.
+  version: 1.0
+servers:
+  - url: http://localhost:3000
+    description: This is my local Server
+  - url: https://example.com/
+    description: This is my original URL
+securityDefinitions:
+  bearerAuth:
+    type: apiKey
+    name: Authorization
+    in: header
+    description: JWT authorization header using the Bearer scheme. Example :- "Bearer {token}"
+schemes:
+  - http
+  - https
+
+paths:
+  /api/v1/users/all:
+    get:
+      tags:
+        - User API Section
+      summary: Get all data with pagination
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: page
+          in: query
+          description: page number
+          type: integer
+          example: 1
+        - name: limit
+          in: query
+          description: data show limit
+          type: integer
+          example: 10
+      responses:
+        "200":
+          description: Data Succesfully Retrieved
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+              message:
+                type: string
+        "404":
+          description: Result Not Found
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+
+  /api/v1/users/by/{id}:
+    get:
+      tags:
+        - User API Section
+      summary: Get data by specific ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the data
+          required: true
+          type: integer
+          example: 1
+      responses:
+        "200":
+          description: Data Succesfully Retrieved
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+              message:
+                type: string
+        "404":
+          description: Result Not Found
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+
+  /api/v1/users/update/{id}:
+    patch:
+      tags:
+        - Example API Section
+      summary: Update data by ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the data
+          required: true
+          type: integer
+          example: 1
+        - name: body
+          in: body
+          description: data details
+          required: true
+          schema:
+            type: object
+            properties:
+              name:
+                type: string
+                example: data Name
+              description:
+                type: string
+                example: data Description
+            required:
+              - name
+              - description
+      responses:
+        "200":
+          description: Data Successfully Updated
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+              message:
+                type: string
+        "404":
+          description: Not Found
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+
+  /api/v1/users/delete/{id}:
+    delete:
+      tags:
+        - Example API Section
+      summary: delete data by ID
+      consumes:
+        - application/json
+      produces:
+        - application/json
+      parameters:
+        - name: id
+          in: path
+          description: ID of the data
+          required: true
+          type: integer
+          example: 1
+      responses:
+        "200":
+          description: Data Successfully Deleted
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              data:
+                type: object
+              message:
+                type: string
+        "404":
+          description: Not Found
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
+        "500":
+          description: Internal Server Error
+          schema:
+            type: object
+            properties:
+              status:
+                type: string
+              message:
+                type: string
